@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envision Energy — PR Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#0A4F8F;--primary-dark:#083E72;--accent:#00A651;--accent-dark:#007A3D;
+  --bg:#F5F7FA;--sidebar:#0D1B2A;--text:#1A1A2E;--muted:#6B7280;
+  --border:#E5E7EB;--white:#FFFFFF;--input-border:#D1D5DB;
+  --metric-bg:#EFF6FF;--row-alt:#F9FAFB;--row-hover:#EFF6FF;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;overflow:hidden;height:100vh}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font);cursor:pointer;font-size:14px}
+input,select,textarea{font-family:var(--font);font-size:14px}
+
+/* LAYOUT */
+.app{display:flex;flex-direction:column;height:100vh}
+.topbar{height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;z-index:100;flex-shrink:0}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--primary);min-width:200px}
+.topbar-title{flex:1;text-align:center;font-size:16px;font-weight:500;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px;min-width:200px;justify-content:flex-end}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;flex-shrink:0}
+.user-info{text-align:right}
+.user-name{font-weight:500;font-size:13px;line-height:1.2}
+.user-role{font-size:11px;color:var(--muted)}
+.role-badge{background:var(--metric-bg);color:var(--primary);font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bell-btn{background:none;border:none;color:var(--muted);font-size:18px;padding:4px;border-radius:4px;cursor:pointer}
+.bell-btn:hover{color:var(--primary);background:var(--row-alt)}
+
+/* ROLE SWITCHER */
+.role-switcher{display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--white);cursor:pointer;font-size:12px;color:var(--muted)}
+.role-switcher:hover{border-color:var(--primary);color:var(--primary)}
+.role-switcher select{border:none;outline:none;background:transparent;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)}
+
+.body-area{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--sidebar);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:12px 0}
+.sidebar-section{margin-top:4px}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#CBD5E1;cursor:pointer;font-size:13.5px;position:relative;transition:background 0.15s}
+.sidebar-item:hover{background:rgba(255,255,255,0.07)}
+.sidebar-item.active{background:var(--primary);color:#fff;border-left:3px solid var(--accent)}
+.sidebar-item.active{padding-left:13px}
+.sidebar-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.sidebar-badge{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto;font-weight:600}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:28px}
+.page{display:none}
+.page.active{display:block}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:20px}
+.card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* METRICS */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.metric-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:18px 20px}
+.metric-label{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:6px}
+.metric-value{font-size:28px;font-weight:700;color:var(--primary);line-height:1}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.page-header-title{font-size:20px;font-weight:600;color:var(--text)}
+.page-header-sub{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 16px;height:36px;border-radius:6px;font-size:13.5px;font-weight:500;border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:var(--accent-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-outline-primary{background:transparent;border:1px solid var(--primary);color:var(--primary)}.btn-outline-primary:hover{background:var(--metric-bg)}
+.btn-outline-green{background:transparent;border:1px solid var(--accent);color:var(--accent)}.btn-outline-green:hover{background:#F0FDF4}
+.btn-outline-orange{background:transparent;border:1px solid #EA580C;color:#EA580C}.btn-outline-orange:hover{background:#FFF7ED}
+.btn-outline-red{background:transparent;border:1px solid #DC2626;color:#DC2626}.btn-outline-red:hover{background:#FEF2F2}
+.btn-teal{background:#0D9488;color:#fff}.btn-teal:hover{background:#0F766E}
+.btn-sm{height:30px;padding:0 12px;font-size:12.5px}
+.btn-xs{height:26px;padding:0 10px;font-size:12px}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--border);white-space:nowrap;background:var(--white)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}
+tr:nth-child(even) td{background:var(--row-alt)}
+tbody tr:hover td{background:var(--row-hover);cursor:pointer}
+.td-nowrap{white-space:nowrap}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.badge-draft{background:#F3F4F6;color:#6B7280}
+.badge-pending-sm{background:#FEF3C7;color:#92400E}
+.badge-pending-ch{background:#FEF3C7;color:#92400E}
+.badge-pending-ins{background:#EFF6FF;color:#1D4ED8}
+.badge-approved{background:#ECFDF5;color:#065F46}
+.badge-rejected{background:#FEF2F2;color:#991B1B}
+.badge-returned{background:#FFF7ED;color:#9A3412}
+.badge-ariba-ready{background:#F0FDF4;color:#166534}
+.badge-ariba-pushed{background:#064E3B;color:#ECFDF5}
+.badge-push-failed{background:#FEF2F2;color:#991B1B}
+.badge-high{background:#FEF2F2;color:#991B1B}
+.badge-normal{background:#F3F4F6;color:#6B7280}
+.badge-active{background:#ECFDF5;color:#065F46}
+.badge-inactive{background:#F3F4F6;color:#6B7280}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12.5px;font-weight:500;color:var(--text)}
+.form-label .req{color:#DC2626;margin-left:2px}
+.form-input{height:38px;border:1px solid var(--input-border);border-radius:6px;padding:0 10px;color:var(--text);outline:none;transition:border-color 0.15s;width:100%}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,79,143,0.1)}
+.form-input[readonly]{background:var(--row-alt);color:var(--muted)}
+.form-textarea{border:1px solid var(--input-border);border-radius:6px;padding:8px 10px;color:var(--text);outline:none;resize:vertical;width:100%;min-height:80px}
+.form-textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,79,143,0.1)}
+.form-select{height:38px;border:1px solid var(--input-border);border-radius:6px;padding:0 10px;color:var(--text);outline:none;background:var(--white);width:100%}
+.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(10,79,143,0.1)}
+.radio-group{display:flex;gap:16px;align-items:center;height:38px}
+.radio-option{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13.5px}
+.radio-option input{accent-color:var(--primary)}
+
+/* LINE ITEMS TABLE */
+.line-items-table th{font-size:11.5px}
+.line-items-table td{padding:6px 8px}
+.li-input{height:32px;border:1px solid var(--input-border);border-radius:4px;padding:0 8px;font-size:12.5px;width:100%;font-family:var(--font);outline:none}
+.li-input:focus{border-color:var(--primary)}
+.li-input[readonly]{background:var(--row-alt);color:var(--muted)}
+.li-select{height:32px;border:1px solid var(--input-border);border-radius:4px;padding:0 6px;font-size:12px;width:100%;font-family:var(--font);background:var(--white);outline:none}
+.li-select:focus{border-color:var(--primary)}
+.trash-btn{background:none;border:none;color:#DC2626;cursor:pointer;padding:4px 6px;border-radius:4px;font-size:16px}
+.trash-btn:hover{background:#FEF2F2}
+.total-row{display:flex;justify-content:flex-end;padding:12px 8px 4px;font-size:14px;font-weight:600;color:var(--text)}
+.total-amount{color:var(--primary);font-size:16px;margin-left:8px}
+
+/* FILTER BAR */
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-input{height:34px;border:1px solid var(--input-border);border-radius:6px;padding:0 10px;font-family:var(--font);font-size:13px;outline:none;min-width:220px}
+.filter-input:focus{border-color:var(--primary)}
+.filter-select{height:34px;border:1px solid var(--input-border);border-radius:6px;padding:0 8px;font-family:var(--font);font-size:13px;background:var(--white);outline:none}
+
+/* APPROVAL TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:13px;top:28px;width:2px;height:calc(100% - 4px);background:var(--border)}
+.tl-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;background:var(--white);z-index:1;margin-top:2px}
+.tl-dot.done{background:#ECFDF5;border-color:#10B981;color:#10B981}
+.tl-dot.current{background:#EFF6FF;border-color:var(--primary);color:var(--primary)}
+.tl-dot.pending{background:var(--row-alt);border-color:var(--input-border);color:var(--muted)}
+.tl-body{flex:1;padding:2px 0 20px}
+.tl-stage{font-size:13px;font-weight:600;color:var(--text)}
+.tl-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.tl-comment{font-size:12px;color:var(--text);background:var(--row-alt);padding:6px 10px;border-radius:6px;margin-top:6px;border-left:3px solid var(--accent)}
+.tl-current-highlight{background:var(--metric-bg);border-radius:8px;padding:8px 10px;margin-top:2px}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--input-border);border-radius:8px;padding:24px;text-align:center;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.upload-zone:hover{border-color:var(--primary);color:var(--primary);background:var(--metric-bg)}
+.upload-file{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--row-alt);border-radius:6px;font-size:13px;margin-top:10px}
+.upload-file-name{flex:1}
+.upload-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;border-radius:4px}
+.upload-remove:hover{color:#DC2626;background:#FEF2F2}
+
+/* ACTION PANEL */
+.action-panel{padding-top:16px;border-top:1px solid var(--border)}
+.action-comment-box{margin-top:12px;display:none}
+.action-comment-box.open{display:block}
+
+/* CHECKLIST */
+.checklist-item{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13.5px}
+.checklist-item input{accent-color:var(--primary);width:16px;height:16px;cursor:pointer}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:12px;padding:28px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.modal-body{font-size:13.5px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-success{text-align:center;padding:8px 0}
+.modal-success .success-icon{font-size:48px;margin-bottom:12px}
+.modal-success h3{font-size:17px;font-weight:600;margin-bottom:6px}
+.modal-success p{font-size:13px;color:var(--muted);line-height:1.6}
+.modal-success .ariba-ref{font-size:15px;font-weight:600;color:var(--accent);margin:10px 0}
+
+/* TOAST */
+.toast-container{position:fixed;top:16px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;font-size:13.5px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.15);pointer-events:auto;animation:slideIn 0.3s ease;min-width:300px;max-width:420px}
+.toast-success{background:#ECFDF5;color:#065F46;border:1px solid #A7F3D0}
+.toast-error{background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5}
+.toast-warning{background:#FFFBEB;color:#92400E;border:1px solid #FDE68A}
+.toast-icon{font-size:16px}
+@keyframes slideIn{from{transform:translateX(120px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeOut{to{opacity:0;transform:translateX(20px)}}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab:hover{color:var(--primary)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* DETAIL LAYOUT */
+.detail-layout{display:grid;grid-template-columns:65% 35%;gap:20px}
+.detail-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.detail-field{}
+.detail-field-label{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.detail-field-value{font-size:13.5px;color:var(--text)}
+
+/* INLINE SEARCH */
+.pr-row-click{cursor:pointer}
+
+/* DAYS WARNING */
+.days-amber{color:#D97706;font-weight:600}
+.days-red{color:#DC2626;font-weight:600}
+
+/* AUDIT LOG */
+.audit-table td{font-size:12.5px;padding:8px 12px}
+
+/* SECTION LABEL */
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:6px 16px;margin-top:8px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+
+/* FORM BOTTOM BAR */
+.form-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:12px;margin-top:4px}
+
+.ariba-success{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:14px 16px;font-size:13.5px;color:#065F46;margin-top:12px;display:none}
+.ariba-success.show{display:block}
+
+/* PROC SECTION */
+.proc-section-title{font-size:14px;font-weight:600;color:var(--text);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+.proc-count{background:var(--primary);color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;font-weight:600}
+
+.push-failed-row td{background:#FEF2F2!important}
+
+/* REPORTS placeholder */
+.reports-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;color:var(--muted);gap:12px}
+.reports-placeholder .icon{font-size:48px;opacity:0.3}
+
+/* Notify screen */
+.notif-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px}
+.notif-dot.read{background:var(--border)}
+.notif-text{font-size:13.5px;color:var(--text);line-height:1.5}
+.notif-time{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="3" fill="#0A4F8F"/>
+        <rect x="13" y="4" width="2" height="8" rx="1" fill="#00A651" transform="rotate(0 14 14) translate(-1,-10)"/>
+        <rect x="13" y="4" width="2" height="8" rx="1" fill="#00A651" transform="rotate(120 14 14) translate(-1,-10)"/>
+        <rect x="13" y="4" width="2" height="8" rx="1" fill="#00A651" transform="rotate(240 14 14) translate(-1,-10)"/>
+        <line x1="14" y1="17" x2="14" y2="26" stroke="#0A4F8F" stroke-width="2" stroke-linecap="round"/>
+        <line x1="10" y1="26" x2="18" y2="26" stroke="#0A4F8F" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Envision Energy
+    </div>
+    <div class="topbar-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--white)">
+        Demo:
+        <select id="roleSwitcher" class="role-switcher" style="border:none;outline:none;font-size:12px;font-family:var(--font);background:transparent;color:var(--text);cursor:pointer" onchange="switchRole(this.value)">
+          <option value="engineer">Site Engineer</option>
+          <option value="statemanager">State Manager</option>
+          <option value="consthead">Construction Head</option>
+          <option value="procurement">Procurement Officer</option>
+        </select>
+      </label>
+      <button class="bell-btn" onclick="navigate('notifications')">🔔</button>
+      <div class="user-info">
+        <div class="user-name" id="userName">Ravi Kumar</div>
+        <div class="user-role" id="userRole">Tirunelveli Site</div>
+      </div>
+      <div class="avatar" id="userAvatar">RK</div>
+    </div>
+  </div>
+
+  <div class="body-area">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main" id="mainArea">
+
+      <!-- DASHBOARD - ENGINEER -->
+      <div class="page" id="page-dashboard-engineer">
+        <div class="page-header">
+          <div>
+            <div class="page-header-title">Dashboard</div>
+            <div class="page-header-sub">Welcome back, Ravi. Here's your PR summary.</div>
+          </div>
+          <button class="btn btn-accent" onclick="navigate('create-pr')">＋ Create New PR</button>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="metric-label">My PRs this month</div><div class="metric-value">7</div></div>
+          <div class="metric-card"><div class="metric-label">Pending Approval</div><div class="metric-value" style="color:#D97706">3</div></div>
+          <div class="metric-card"><div class="metric-label">Approved</div><div class="metric-value" style="color:#059669">2</div></div>
+          <div class="metric-card"><div class="metric-label">Rejected / Returned</div><div class="metric-value" style="color:#DC2626">2</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent Purchase Requests</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Description</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr class="pr-row-click" onclick="openPRDetail('EE-PR-2024-0041')"><td class="td-nowrap"><strong>EE-PR-2024-0041</strong></td><td>Crane Hire - Tower Section</td><td>18 Nov 2024</td><td><span class="badge badge-pending-sm">Pending State Manager</span></td><td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0041')">View</button></td></tr>
+                <tr class="pr-row-click" onclick="openPRDetail('EE-PR-2024-0042')"><td class="td-nowrap"><strong>EE-PR-2024-0042</strong></td><td>LT Panel Replacement</td><td>20 Nov 2024</td><td><span class="badge badge-draft">Draft</span></td><td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0042')">View</button></td></tr>
+                <tr class="pr-row-click" onclick="openPRDetail('EE-PR-2024-0040')"><td class="td-nowrap"><strong>EE-PR-2024-0040</strong></td><td>Hydraulic Oil & Lubricants</td><td>15 Nov 2024</td><td><span class="badge badge-returned">Returned for Correction</span></td><td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0040')">View</button></td></tr>
+                <tr class="pr-row-click" onclick="openPRDetail('EE-PR-2024-0039')"><td class="td-nowrap"><strong>EE-PR-2024-0039</strong></td><td>Safety PPE Restock Q4</td><td>14 Nov 2024</td><td><span class="badge badge-pending-ch">Pending Construction Head</span></td><td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0039')">View</button></td></tr>
+                <tr class="pr-row-click" onclick="openPRDetail('EE-PR-2024-0038')"><td class="td-nowrap"><strong>EE-PR-2024-0038</strong></td><td>GI Wire & Earthing Materials</td><td>12 Nov 2024</td><td><span class="badge badge-approved">Approved</span></td><td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0038')">View</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD - STATE MANAGER -->
+      <div class="page" id="page-dashboard-statemanager">
+        <div class="page-header">
+          <div><div class="page-header-title">Dashboard</div><div class="page-header-sub">Welcome, Anand. Pending approvals require your attention.</div></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="metric-label">Awaiting My Approval</div><div class="metric-value" style="color:#D97706">5</div></div>
+          <div class="metric-card"><div class="metric-label">Approved This Week</div><div class="metric-value" style="color:#059669">8</div></div>
+          <div class="metric-card"><div class="metric-label">Returned for Correction</div><div class="metric-value" style="color:#EA580C">2</div></div>
+          <div class="metric-card"><div class="metric-label">Total PRs in System</div><div class="metric-value">47</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pending Approvals</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Engineer</th><th>Site</th><th>Date Submitted</th><th>Priority</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr onclick="openPRDetail('EE-PR-2024-0041')"><td><strong>EE-PR-2024-0041</strong></td><td>Ravi Kumar</td><td>Tirunelveli</td><td>18 Nov 2024</td><td><span class="badge badge-high">High</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0041')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0043')"><td><strong>EE-PR-2024-0043</strong></td><td>Meera Patel</td><td>Kutch</td><td>19 Nov 2024</td><td><span class="badge badge-normal">Normal</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0043')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0044')"><td><strong>EE-PR-2024-0044</strong></td><td>Arjun Das</td><td>Jaisalmer</td><td>17 Nov 2024</td><td><span class="badge badge-normal">Normal</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0044')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0045')"><td><strong>EE-PR-2024-0045</strong></td><td>Ramesh B</td><td>Davangere</td><td>16 Nov 2024</td><td><span class="badge badge-high">High</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0045')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0046')"><td><strong>EE-PR-2024-0046</strong></td><td>Priya S</td><td>Brahmanvel</td><td>19 Nov 2024</td><td><span class="badge badge-normal">Normal</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0046')">Review</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD - CONST HEAD -->
+      <div class="page" id="page-dashboard-consthead">
+        <div class="page-header">
+          <div><div class="page-header-title">Dashboard</div><div class="page-header-sub">Welcome, Suresh. 3 PRs pending your review.</div></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="metric-label">Awaiting My Approval</div><div class="metric-value" style="color:#D97706">3</div></div>
+          <div class="metric-card"><div class="metric-label">Approved This Week</div><div class="metric-value" style="color:#059669">11</div></div>
+          <div class="metric-card"><div class="metric-label">Returned</div><div class="metric-value" style="color:#EA580C">1</div></div>
+          <div class="metric-card"><div class="metric-label">Total Active PRs</div><div class="metric-value">31</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Pending Approvals</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Engineer</th><th>Site</th><th>Date Submitted</th><th>Priority</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr onclick="openPRDetail('EE-PR-2024-0039')"><td><strong>EE-PR-2024-0039</strong></td><td>Ravi Kumar</td><td>Kutch</td><td>14 Nov 2024</td><td><span class="badge badge-normal">Normal</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0039')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0043')"><td><strong>EE-PR-2024-0043</strong></td><td>Meera Patel</td><td>Kutch</td><td>19 Nov 2024</td><td><span class="badge badge-normal">Normal</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0043')">Review</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0041')"><td><strong>EE-PR-2024-0041</strong></td><td>Ravi Kumar</td><td>Tirunelveli</td><td>18 Nov 2024</td><td><span class="badge badge-high">High</span></td><td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0041')">Review</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD - PROCUREMENT -->
+      <div class="page" id="page-dashboard-procurement">
+        <div class="page-header">
+          <div><div class="page-header-title">Dashboard</div><div class="page-header-sub">Welcome, Priya. 4 PRs ready for Ariba push.</div></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card"><div class="metric-label">Ready for Ariba</div><div class="metric-value" style="color:#0D9488">4</div></div>
+          <div class="metric-card"><div class="metric-label">Pushed to Ariba</div><div class="metric-value" style="color:#059669">12</div></div>
+          <div class="metric-card"><div class="metric-label">Push Failed</div><div class="metric-value" style="color:#DC2626">1</div></div>
+          <div class="metric-card"><div class="metric-label">Total Approved PRs</div><div class="metric-value">38</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">PRs Ready for Ariba</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Title</th><th>Site</th><th>Value (INR)</th><th>Approved Date</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr onclick="openPRDetail('EE-PR-2024-0038')"><td><strong>EE-PR-2024-0038</strong></td><td>GI Wire & Earthing Materials</td><td>Tirunelveli</td><td>₹1,24,500</td><td>20 Nov 2024</td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0038')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0033')"><td><strong>EE-PR-2024-0033</strong></td><td>TMT Steel Bars Foundation</td><td>Brahmanvel</td><td>₹3,12,000</td><td>18 Nov 2024</td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0033')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0034')"><td><strong>EE-PR-2024-0034</strong></td><td>Welding Electrodes Bulk</td><td>Jaisalmer</td><td>₹18,500</td><td>17 Nov 2024</td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0034')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0036')"><td><strong>EE-PR-2024-0036</strong></td><td>Angle Grinders x5</td><td>Kutch</td><td>₹28,500</td><td>16 Nov 2024</td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0036')">Push to Ariba</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREATE PR -->
+      <div class="page" id="page-create-pr">
+        <div class="page-header">
+          <div><div class="page-header-title">Create New Purchase Request</div><div class="page-header-sub">Fill in all required fields and add line items before submitting.</div></div>
+          <button class="btn btn-outline" onclick="navigate('my-prs')">← Back to My PRs</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 PR Header Details</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">PR Number</label><input type="text" class="form-input" id="prNumber" value="EE-PR-2024-0042" readonly></div>
+            <div class="form-group"><label class="form-label">Priority</label>
+              <div class="radio-group"><label class="radio-option"><input type="radio" name="priority" value="Normal" checked> Normal</label><label class="radio-option"><input type="radio" name="priority" value="High"> High</label></div>
+            </div>
+            <div class="form-group full"><label class="form-label">PR Title <span class="req">*</span></label><input type="text" class="form-input" id="prTitle" placeholder="Brief description of the purchase request"></div>
+            <div class="form-group"><label class="form-label">Site / Project <span class="req">*</span></label>
+              <select class="form-select" id="prSite"><option value="">Select site...</option><option>Tirunelveli Wind Farm</option><option>Kutch Wind Project</option><option>Jaisalmer Phase 2</option><option>Brahmanvel Wind Farm</option><option>Davangere Site</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Department <span class="req">*</span></label>
+              <select class="form-select"><option value="">Select department...</option><option>Civil</option><option>Electrical</option><option>Mechanical</option><option>HSE</option><option>IT & Admin</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Category <span class="req">*</span></label>
+              <select class="form-select"><option value="">Select category...</option><option>Equipment</option><option>Consumables</option><option>Services</option><option>Spare Parts</option><option>PPE & Safety</option><option>Tools</option><option>Civil Materials</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Required By Date <span class="req">*</span></label><input type="date" class="form-input"></div>
+            <div class="form-group full"><label class="form-label">Justification / Remarks <span class="req">*</span></label><textarea class="form-textarea" placeholder="Explain why this purchase is needed, any urgency, or special requirements"></textarea></div>
+            <div class="form-group"><label class="form-label">Estimated Total Value (INR)</label><input type="text" class="form-input" id="totalValueDisplay" value="₹ 0" readonly></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">📦 Line Items</div>
+          <div class="table-wrap">
+            <table class="line-items-table">
+              <thead><tr><th style="width:32px">#</th><th style="min-width:200px">Item Name</th><th style="min-width:120px">Category</th><th style="width:90px">UOM</th><th style="width:80px">Qty</th><th style="min-width:150px">Unit Price (INR)</th><th style="min-width:120px">Total (INR)</th><th style="min-width:140px">Remarks</th><th style="width:40px"></th></tr></thead>
+              <tbody id="lineItemsBody"></tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:12px">
+            <button class="btn btn-outline-green btn-sm" onclick="addLineItem()">＋ Add Line Item</button>
+          </div>
+          <div class="total-row">Estimated Total: <span class="total-amount" id="grandTotal">₹ 0</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📎 Attachments <span style="font-size:12px;font-weight:400;color:var(--muted)">(Optional)</span></div>
+          <div class="upload-zone" onclick="showToast('File upload not available in prototype mode.','warning')">
+            <div style="font-size:24px;margin-bottom:6px">📁</div>
+            <div style="font-size:13.5px">Drag & drop files or click to upload</div>
+            <div style="font-size:12px;margin-top:4px;color:var(--muted)">PDF, JPG, PNG — max 10MB each</div>
+          </div>
+          <div class="upload-file"><span>📄</span><span class="upload-file-name">site_inspection_report.pdf</span><span style="font-size:12px;color:var(--muted)">2.3 MB</span><button class="upload-remove" onclick="this.parentElement.remove()">✕</button></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:8px">Supporting documents, quotes, and inspection photos</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-outline" onclick="saveDraft()">Save as Draft</button>
+          <button class="btn btn-primary" onclick="submitPR()">Submit for Approval →</button>
+        </div>
+      </div>
+
+      <!-- MY PRs -->
+      <div class="page" id="page-my-prs">
+        <div class="page-header">
+          <div><div class="page-header-title">My Purchase Requests</div><div class="page-header-sub">All PRs submitted by you across all sites.</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" onclick="showToast('Exporting... (feature coming soon)','warning')">📊 Export to Excel</button>
+            <button class="btn btn-accent" onclick="navigate('create-pr')">＋ Create New PR</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <input type="text" class="filter-input" placeholder="Search by PR number, title..." id="prSearch" oninput="filterPRs()">
+            <select class="filter-select" id="statusFilter" onchange="filterPRs()">
+              <option value="">All Statuses</option>
+              <option>Draft</option><option>Pending State Manager</option><option>Pending Construction Head</option>
+              <option>Pending Inspector</option><option>Approved</option><option>Rejected</option><option>Returned for Correction</option>
+            </select>
+            <input type="date" class="filter-select" id="dateFrom" onchange="filterPRs()">
+            <input type="date" class="filter-select" id="dateTo" onchange="filterPRs()">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Title</th><th>Site</th><th>Category</th><th>Date Created</th><th>Total Value</th><th>Status</th><th>Last Action</th><th>Actions</th></tr></thead>
+              <tbody id="myPRsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL PRs (Manager/CH/Proc) -->
+      <div class="page" id="page-all-prs">
+        <div class="page-header">
+          <div><div class="page-header-title">All Purchase Requests</div><div class="page-header-sub">System-wide PR register.</div></div>
+          <button class="btn btn-outline" onclick="showToast('Exporting... (feature coming soon)','warning')">📊 Export to Excel</button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <input type="text" class="filter-input" placeholder="Search by PR number, title, engineer..." id="allPrSearch" oninput="filterAllPRs()">
+            <select class="filter-select" id="allStatusFilter" onchange="filterAllPRs()"><option value="">All Statuses</option><option>Draft</option><option>Pending State Manager</option><option>Pending Construction Head</option><option>Pending Inspector</option><option>Approved</option><option>Rejected</option><option>Returned for Correction</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR Number</th><th>Title</th><th>Engineer</th><th>Site</th><th>Date</th><th>Value</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="allPRsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PR DETAIL -->
+      <div class="page" id="page-pr-detail">
+        <div class="page-header">
+          <div><div class="page-header-title" id="detailPRNum">PR Detail</div></div>
+          <button class="btn btn-outline" onclick="goBack()">← Back</button>
+        </div>
+        <div class="detail-layout">
+          <div>
+            <div class="card">
+              <div class="card-title" style="justify-content:space-between">
+                <span>Purchase Request Details</span>
+                <span id="detailStatusBadge"></span>
+              </div>
+              <div class="detail-fields" id="detailFields"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Line Items</div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>#</th><th>Item Name</th><th>Category</th><th>UOM</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Remarks</th></tr></thead>
+                  <tbody id="detailLineItems"></tbody>
+                </table>
+              </div>
+              <div class="total-row">Total Value: <span class="total-amount" id="detailTotal"></span></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Attachments</div>
+              <div class="upload-file"><span>📄</span><span class="upload-file-name">site_inspection_report.pdf</span><span style="font-size:12px;color:var(--muted)">2.3 MB</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title">Approval Progress</div>
+              <div class="timeline" id="detailTimeline"></div>
+            </div>
+            <div class="card" id="actionPanel">
+              <div class="card-title" id="actionPanelTitle">Actions</div>
+              <div id="actionPanelContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPROVALS INBOX -->
+      <div class="page" id="page-approvals">
+        <div class="page-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="page-header-title">Approvals Inbox</div>
+            <span class="sidebar-badge" style="position:static;font-size:12px;padding:2px 10px" id="inboxCount">5 pending</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <div class="tab active" onclick="setInboxTab(this,'all')">All</div>
+            <div class="tab" onclick="setInboxTab(this,'pending')">Pending</div>
+            <div class="tab" onclick="setInboxTab(this,'approved')">Approved by me</div>
+            <div class="tab" onclick="setInboxTab(this,'returned')">Returned by me</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR #</th><th>Title</th><th>Submitted By</th><th>Site</th><th>Category</th><th>Value (INR)</th><th>Days Waiting</th><th>Priority</th><th>Action</th></tr></thead>
+              <tbody id="inboxBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROCUREMENT -->
+      <div class="page" id="page-procurement">
+        <div class="page-header">
+          <div><div class="page-header-title">Procurement Processing</div><div class="page-header-sub">Manage Ariba push and track procurement status.</div></div>
+        </div>
+        <div class="card">
+          <div class="proc-section-title">Ready for Ariba <span class="proc-count">4</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR #</th><th>Title</th><th>Site</th><th>Value</th><th>Approved Date</th><th>Checklist</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr onclick="openPRDetail('EE-PR-2024-0038')"><td><strong>EE-PR-2024-0038</strong></td><td>GI Wire & Earthing Materials</td><td>Tirunelveli</td><td>₹1,24,500</td><td>20 Nov 2024</td><td><span class="badge badge-ariba-ready">Ready</span></td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0038')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0033')"><td><strong>EE-PR-2024-0033</strong></td><td>TMT Steel Bars Foundation</td><td>Brahmanvel</td><td>₹3,12,000</td><td>18 Nov 2024</td><td><span class="badge badge-draft">Pending review</span></td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0033')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0034')"><td><strong>EE-PR-2024-0034</strong></td><td>Welding Electrodes Bulk</td><td>Jaisalmer</td><td>₹18,500</td><td>17 Nov 2024</td><td><span class="badge badge-draft">Pending review</span></td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0034')">Push to Ariba</button></td></tr>
+                <tr onclick="openPRDetail('EE-PR-2024-0036')"><td><strong>EE-PR-2024-0036</strong></td><td>Angle Grinders x5</td><td>Kutch</td><td>₹28,500</td><td>16 Nov 2024</td><td><span class="badge badge-ariba-ready">Ready</span></td><td><button class="btn btn-teal btn-xs" onclick="event.stopPropagation();openPRDetail('EE-PR-2024-0036')">Push to Ariba</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="proc-section-title" style="margin-top:24px">Recently Pushed to Ariba <span class="proc-count">5</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>PR #</th><th>Title</th><th>Ariba Ref #</th><th>Pushed By</th><th>Pushed On</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><strong>EE-PR-2024-0033</strong></td><td>TMT Steel Bars</td><td>ARB-2024-8817</td><td>Priya Menon</td><td>10 Nov 2024</td><td><span class="badge badge-ariba-pushed">Pushed ✓</span></td><td></td></tr>
+                <tr><td><strong>EE-PR-2024-0034</strong></td><td>Welding Electrodes</td><td>ARB-2024-8818</td><td>Priya Menon</td><td>11 Nov 2024</td><td><span class="badge badge-ariba-pushed">Pushed ✓</span></td><td></td></tr>
+                <tr><td><strong>EE-PR-2024-0036</strong></td><td>Angle Grinders</td><td>ARB-2024-8819</td><td>Rahul Nair</td><td>12 Nov 2024</td><td><span class="badge badge-ariba-pushed">Pushed ✓</span></td><td></td></tr>
+                <tr class="push-failed-row"><td><strong>EE-PR-2024-0037</strong></td><td>Diesel Supply</td><td>—</td><td>Priya Menon</td><td>15 Nov 2024</td><td><span class="badge badge-push-failed">Push Failed ✗</span></td><td><button class="btn btn-outline-red btn-xs">Retry</button></td></tr>
+                <tr><td><strong>EE-PR-2024-0038</strong></td><td>GI Wire & Earthing</td><td>ARB-2024-8821</td><td>Priya Menon</td><td>20 Nov 2024</td><td><span class="badge badge-ariba-pushed">Pushed ✓</span></td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="proc-section-title" style="margin-top:24px">Audit Log</div>
+          <div class="table-wrap">
+            <table class="audit-table">
+              <thead><tr><th>Timestamp</th><th>Action</th><th>PR #</th><th>Ariba Ref</th><th>User</th><th>Result</th></tr></thead>
+              <tbody>
+                <tr><td>20 Nov 2024, 3:45 PM</td><td>Push to Ariba</td><td>EE-PR-2024-0038</td><td>ARB-2024-8821</td><td>Priya Menon</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>15 Nov 2024, 11:20 AM</td><td>Push to Ariba</td><td>EE-PR-2024-0037</td><td>—</td><td>Priya Menon</td><td><span class="badge badge-rejected" style="font-size:11px">Failed</span></td></tr>
+                <tr><td>12 Nov 2024, 2:10 PM</td><td>Push to Ariba</td><td>EE-PR-2024-0036</td><td>ARB-2024-8819</td><td>Rahul Nair</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>11 Nov 2024, 10:05 AM</td><td>Push to Ariba</td><td>EE-PR-2024-0034</td><td>ARB-2024-8818</td><td>Priya Menon</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>10 Nov 2024, 9:30 AM</td><td>Push to Ariba</td><td>EE-PR-2024-0033</td><td>ARB-2024-8817</td><td>Priya Menon</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>09 Nov 2024, 4:15 PM</td><td>Approved</td><td>EE-PR-2024-0033</td><td>—</td><td>Suresh Nair</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>08 Nov 2024, 3:00 PM</td><td>Approved</td><td>EE-PR-2024-0034</td><td>—</td><td>Anand Sharma</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+                <tr><td>07 Nov 2024, 11:50 AM</td><td>Returned</td><td>EE-PR-2024-0040</td><td>—</td><td>Anand Sharma</td><td><span class="badge badge-returned" style="font-size:11px">Returned</span></td></tr>
+                <tr><td>05 Nov 2024, 2:30 PM</td><td>Rejected</td><td>EE-PR-2024-0035</td><td>—</td><td>Suresh Nair</td><td><span class="badge badge-rejected" style="font-size:11px">Rejected</span></td></tr>
+                <tr><td>03 Nov 2024, 9:00 AM</td><td>Push to Ariba</td><td>EE-PR-2024-0032</td><td>ARB-2024-8816</td><td>Priya Menon</td><td><span class="badge badge-approved" style="font-size:11px">Success</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEM MASTER -->
+      <div class="page" id="page-item-master">
+        <div class="page-header">
+          <div><div class="page-header-title">Item Master</div><div class="page-header-sub">Approved item catalogue for purchase requests.</div></div>
+          <button class="btn btn-primary" onclick="showToast('Add Item form coming soon in full build.','warning')">＋ Add New Item</button>
+        </div>
+        <div class="card">
+          <div class="filter-bar">
+            <input type="text" class="filter-input" placeholder="Search by item code or name..." id="itemSearch" oninput="filterItems()">
+            <select class="filter-select" id="itemCatFilter" onchange="filterItems()"><option value="">All Categories</option><option>Civil Materials</option><option>Electrical</option><option>Consumables</option><option>PPE & Safety</option><option>Tools</option><option>Spare Parts</option><option>Services</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Item Code</th><th>Item Name</th><th>Category</th><th>Unit of Measure</th><th>Standard Description</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="itemMasterBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="page-header"><div class="page-header-title">Reports & Analytics</div></div>
+        <div class="card">
+          <div class="reports-placeholder">
+            <div class="icon">📊</div>
+            <div style="font-size:16px;font-weight:500;color:var(--text)">Reports Module</div>
+            <div style="font-size:13px;text-align:center;max-width:320px">Detailed spend analytics, approval SLA reports, and site-wise PR summaries will be available in the full build.</div>
+            <button class="btn btn-outline-primary" onclick="showToast('Reports module coming soon.','warning')">Preview Coming Soon</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="page" id="page-notifications">
+        <div class="page-header"><div class="page-header-title">Notifications</div></div>
+        <div class="card">
+          <div class="notif-item"><div class="notif-dot"></div><div><div class="notif-text">PR <strong>EE-PR-2024-0041</strong> has been submitted by Ravi Kumar and is awaiting your review.</div><div class="notif-time">20 Nov 2024, 10:32 AM</div></div></div>
+          <div class="notif-item"><div class="notif-dot"></div><div><div class="notif-text">PR <strong>EE-PR-2024-0040</strong> has been returned for correction by Anand Sharma. Please revise and resubmit.</div><div class="notif-time">19 Nov 2024, 3:15 PM</div></div></div>
+          <div class="notif-item"><div class="notif-dot read"></div><div><div class="notif-text" style="color:var(--muted)">PR <strong>EE-PR-2024-0038</strong> has been approved and is ready for Ariba push.</div><div class="notif-time">18 Nov 2024, 2:00 PM</div></div></div>
+          <div class="notif-item"><div class="notif-dot read"></div><div><div class="notif-text" style="color:var(--muted)">PR <strong>EE-PR-2024-0035</strong> was rejected by Suresh Nair. Reason: Budget exceeded for this quarter.</div><div class="notif-time">15 Nov 2024, 11:00 AM</div></div></div>
+          <div class="notif-item"><div class="notif-dot read"></div><div><div class="notif-text" style="color:var(--muted)">PR <strong>EE-PR-2024-0033</strong> has been successfully pushed to SAP Ariba (Ref: ARB-2024-8817).</div><div class="notif-time">10 Nov 2024, 9:31 AM</div></div></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body-area -->
+
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const itemMaster = [
+  {code:'EE-MAT-001',name:'GI Wire 8 SWG',cat:'Civil Materials',uom:'KG',desc:'Galvanized iron wire, 8 SWG grade, ISI marked'},
+  {code:'EE-MAT-002',name:'Portland Cement OPC 53',cat:'Civil Materials',uom:'Bags',desc:'OPC 53 Grade, 50kg bags, IS 8112 compliant'},
+  {code:'EE-MAT-003',name:'TMT Steel Bar 12mm',cat:'Civil Materials',uom:'KG',desc:'TMT Fe500D grade, 12mm dia, IS 1786'},
+  {code:'EE-MAT-004',name:'XLPE Cable 3.5C x 95 Sqmm',cat:'Electrical',uom:'Mtrs',desc:'XLPE insulated armoured cable, 1.1kV grade'},
+  {code:'EE-MAT-005',name:'LT Panel 415V',cat:'Electrical',uom:'Nos',desc:'415V LT distribution panel, ICAD type, IP55'},
+  {code:'EE-MAT-006',name:'Diesel (HSD)',cat:'Consumables',uom:'Ltrs',desc:'High Speed Diesel, BS-VI grade, BPCL/IOC'},
+  {code:'EE-MAT-007',name:'Hydraulic Oil ISO 46',cat:'Consumables',uom:'Ltrs',desc:'Premium hydraulic oil, ISO VG 46 viscosity grade'},
+  {code:'EE-MAT-008',name:'Safety Helmet IS 2925',cat:'PPE & Safety',uom:'Nos',desc:'Industrial safety helmet, IS 2925, HDPE shell'},
+  {code:'EE-MAT-009',name:'Safety Harness Full Body',cat:'PPE & Safety',uom:'Nos',desc:'Full body harness with double lanyard, IS 3521'},
+  {code:'EE-MAT-010',name:'Angle Grinder 7 inch',cat:'Tools',uom:'Nos',desc:'7-inch angle grinder, 2000W, with guard'},
+  {code:'EE-MAT-011',name:'Chain Pulley Block 5T',cat:'Tools',uom:'Nos',desc:'5 tonne chain pulley block, 3m lift, alloy steel'},
+  {code:'EE-MAT-012',name:'Welding Electrodes 3.15mm',cat:'Consumables',uom:'KG',desc:'AWS E6013 electrodes, 3.15mm dia, 5kg pack'},
+  {code:'EE-MAT-013',name:'Crane Hire Service',cat:'Services',uom:'Days',desc:'Mobile crane hire 50T capacity, includes operator'},
+  {code:'EE-MAT-014',name:'Earthing Material GI Plate',cat:'Electrical',uom:'Nos',desc:'GI earth plate 600x600x6mm, IS 3043'},
+  {code:'EE-MAT-015',name:'Bolt & Nut Set M20',cat:'Spare Parts',uom:'Sets',desc:'M20 hex bolt & nut set, galvanized, grade 8.8'},
+];
+
+const prData = {
+  'EE-PR-2024-0038':{num:'EE-PR-2024-0038',title:'GI Wire & Earthing Materials',site:'Tirunelveli Wind Farm',dept:'Electrical',cat:'Electrical',priority:'Normal',reqBy:'30 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'12 Nov 2024',value:'₹1,24,500',status:'approved',stage:4,remarks:'Required for tower earthing connections and site fencing at Tirunelveli sector 3.'},
+  'EE-PR-2024-0039':{num:'EE-PR-2024-0039',title:'Safety PPE Restock Q4',site:'Kutch Wind Project',dept:'HSE',cat:'PPE & Safety',priority:'Normal',reqBy:'25 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'14 Nov 2024',value:'₹38,200',status:'pending-ch',stage:2,remarks:'Q4 PPE replenishment for site workers. Existing stock depleted.'},
+  'EE-PR-2024-0040':{num:'EE-PR-2024-0040',title:'Hydraulic Oil & Lubricants',site:'Jaisalmer Phase 2',dept:'Mechanical',cat:'Consumables',priority:'Normal',reqBy:'20 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'15 Nov 2024',value:'₹22,800',status:'returned',stage:1,remarks:'Monthly lubrication requirement for WTG nacelle components.'},
+  'EE-PR-2024-0041':{num:'EE-PR-2024-0041',title:'Crane Hire - Tower Section',site:'Tirunelveli Wind Farm',dept:'Civil',cat:'Services',priority:'High',reqBy:'22 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'18 Nov 2024',value:'₹4,50,000',status:'pending-sm',stage:1,remarks:'50T crane required for section 4-6 tower installation. Scheduled 22-24 Nov.'},
+  'EE-PR-2024-0042':{num:'EE-PR-2024-0042',title:'LT Panel Replacement',site:'Davangere Site',dept:'Electrical',cat:'Electrical',priority:'High',reqBy:'01 Dec 2024',submittedBy:'Ravi Kumar',submittedOn:'20 Nov 2024',value:'₹2,85,000',status:'draft',stage:0,remarks:'Replacement of faulty LT panel in substation block B.'},
+  'EE-PR-2024-0033':{num:'EE-PR-2024-0033',title:'TMT Steel Bars Foundation',site:'Brahmanvel Wind Farm',dept:'Civil',cat:'Civil Materials',priority:'Normal',reqBy:'10 Nov 2024',submittedBy:'Arjun Das',submittedOn:'01 Nov 2024',value:'₹3,12,000',status:'approved',stage:4,remarks:'Foundation reinforcement bars for turbine bases 12-15.'},
+  'EE-PR-2024-0034':{num:'EE-PR-2024-0034',title:'Welding Electrodes Bulk',site:'Jaisalmer Phase 2',dept:'Mechanical',cat:'Consumables',priority:'Normal',reqBy:'10 Nov 2024',submittedBy:'Meera Patel',submittedOn:'03 Nov 2024',value:'₹18,500',status:'approved',stage:4,remarks:'Bulk electrodes for structural welding works phase 2.'},
+  'EE-PR-2024-0035':{num:'EE-PR-2024-0035',title:'Safety Harness x20',site:'Tirunelveli Wind Farm',dept:'HSE',cat:'PPE & Safety',priority:'Normal',reqBy:'12 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'05 Nov 2024',value:'₹41,000',status:'rejected',stage:3,remarks:'Additional harnesses for new crew joining Tirunelveli.'},
+  'EE-PR-2024-0036':{num:'EE-PR-2024-0036',title:'Angle Grinders x5',site:'Kutch Wind Project',dept:'Mechanical',cat:'Tools',priority:'Normal',reqBy:'14 Nov 2024',submittedBy:'Ravi Kumar',submittedOn:'07 Nov 2024',value:'₹28,500',status:'approved',stage:4,remarks:'Replacement for worn tools. 5 units as per tool management plan.'},
+  'EE-PR-2024-0037':{num:'EE-PR-2024-0037',title:'Diesel Supply November',site:'Davangere Site',dept:'Civil',cat:'Consumables',priority:'Normal',reqBy:'15 Nov 2024',submittedBy:'Ramesh B',submittedOn:'09 Nov 2024',value:'₹95,000',status:'pending-ins',stage:3,remarks:'Monthly HSD supply for DG sets and construction machinery.'},
+  'EE-PR-2024-0043':{num:'EE-PR-2024-0043',title:'XLPE Cable 500m',site:'Kutch Wind Project',dept:'Electrical',cat:'Electrical',priority:'Normal',reqBy:'28 Nov 2024',submittedBy:'Meera Patel',submittedOn:'19 Nov 2024',value:'₹1,85,000',status:'pending-sm',stage:1,remarks:'Interconnection cable for WTG clusters 5-8.'},
+  'EE-PR-2024-0044':{num:'EE-PR-2024-0044',title:'Foundation Bolts Bulk',site:'Jaisalmer Phase 2',dept:'Civil',cat:'Spare Parts',priority:'Normal',reqBy:'25 Nov 2024',submittedBy:'Arjun Das',submittedOn:'17 Nov 2024',value:'₹67,500',status:'pending-sm',stage:1,remarks:'M20 anchor bolt sets for turbine foundation templates.'},
+  'EE-PR-2024-0045':{num:'EE-PR-2024-0045',title:'HSD Diesel October Top-up',site:'Davangere Site',dept:'Civil',cat:'Consumables',priority:'High',reqBy:'21 Nov 2024',submittedBy:'Ramesh B',submittedOn:'16 Nov 2024',value:'₹1,10,000',status:'pending-sm',stage:1,remarks:'Emergency top-up due to higher than expected DG consumption.'},
+  'EE-PR-2024-0046':{num:'EE-PR-2024-0046',title:'Safety Audit Equipment',site:'Brahmanvel Wind Farm',dept:'HSE',cat:'PPE & Safety',priority:'Normal',reqBy:'30 Nov 2024',submittedBy:'Priya S',submittedOn:'19 Nov 2024',value:'₹52,000',status:'pending-sm',stage:1,remarks:'Equipment for upcoming third-party safety audit.'},
+};
+
+const prLineItems = {
+  'EE-PR-2024-0038':[{code:'EE-MAT-001',name:'GI Wire 8 SWG',cat:'Civil Materials',uom:'KG',qty:200,price:320,total:64000,remarks:'For earthing mesh'},
+    {code:'EE-MAT-014',name:'Earthing Material GI Plate',cat:'Electrical',uom:'Nos',qty:12,price:5000,total:60000,remarks:'Tower base earthing'}],
+  'EE-PR-2024-0039':[{code:'EE-MAT-008',name:'Safety Helmet IS 2925',cat:'PPE & Safety',uom:'Nos',qty:20,price:850,total:17000,remarks:''},
+    {code:'EE-MAT-009',name:'Safety Harness Full Body',cat:'PPE & Safety',uom:'Nos',qty:5,price:4240,total:21200,remarks:'For height work'}],
+  'EE-PR-2024-0041':[{code:'EE-MAT-013',name:'Crane Hire Service',cat:'Services',uom:'Days',qty:3,price:150000,total:450000,remarks:'50T crane, 22-24 Nov'}],
+  'EE-PR-2024-0042':[{code:'EE-MAT-005',name:'LT Panel 415V',cat:'Electrical',uom:'Nos',qty:1,price:285000,total:285000,remarks:'Substation Block B replacement'}],
+};
+const defaultLineItems=[{code:'EE-MAT-006',name:'Diesel (HSD)',cat:'Consumables',uom:'Ltrs',qty:500,price:190,total:95000,remarks:'Monthly supply'}];
+
+const roleConfig = {
+  engineer:{name:'Ravi Kumar',initials:'RK',role:'Site Engineer',site:'Tirunelveli Site',dashboard:'dashboard-engineer',nav:[
+    {id:'dashboard-engineer',label:'Dashboard',icon:'🏠'},
+    {id:'create-pr',label:'Create New PR',icon:'➕'},
+    {id:'my-prs',label:'My PRs',icon:'📋'},
+    {id:'item-master',label:'Item Master',icon:'📦'},
+    {id:'notifications',label:'Notifications',icon:'🔔'},
+  ]},
+  statemanager:{name:'Anand Sharma',initials:'AS',role:'State Manager',site:'Maharashtra Region',dashboard:'dashboard-statemanager',nav:[
+    {id:'dashboard-statemanager',label:'Dashboard',icon:'🏠'},
+    {id:'approvals',label:'Approvals Inbox',icon:'📥',badge:'5'},
+    {id:'all-prs',label:'All PRs',icon:'📋'},
+    {id:'reports',label:'Reports',icon:'📊'},
+    {id:'notifications',label:'Notifications',icon:'🔔'},
+  ]},
+  consthead:{name:'Suresh Nair',initials:'SN',role:'Construction Head',site:'Head Office',dashboard:'dashboard-consthead',nav:[
+    {id:'dashboard-consthead',label:'Dashboard',icon:'🏠'},
+    {id:'approvals',label:'Approvals Inbox',icon:'📥',badge:'3'},
+    {id:'all-prs',label:'All PRs',icon:'📋'},
+    {id:'reports',label:'Reports',icon:'📊'},
+    {id:'notifications',label:'Notifications',icon:'🔔'},
+  ]},
+  procurement:{name:'Priya Menon',initials:'PM',role:'Procurement Officer',site:'Procurement Dept',dashboard:'dashboard-procurement',nav:[
+    {id:'dashboard-procurement',label:'Dashboard',icon:'🏠'},
+    {id:'procurement',label:'Procurement',icon:'🚀'},
+    {id:'all-prs',label:'All PRs',icon:'📋'},
+    {id:'item-master',label:'Item Master',icon:'📦'},
+    {id:'reports',label:'Reports',icon:'📊'},
+    {id:'notifications',label:'Notifications',icon:'🔔'},
+  ]},
+};
+
+const stageTitles=['Submitted','State Manager Review','Construction Head Review','Inspector Review','Procurement / Ariba'];
+const stageApprovers=['','Anand Sharma','Suresh Nair','Inspector – M. Krishnan','Priya Menon'];
+const stageComments=[
+  null,
+  'Quantities verified against site stock report. Approved.',
+  'Approved. Confirm with site team on delivery schedule.',
+  null,null
+];
+
+let currentRole = 'engineer';
+let currentPage = '';
+let previousPage = '';
+let lineItemCounter = 0;
+let prCounter = 43;
+
+// ─── STATUS BADGE ────────────────────────────────────────────────────────────
+function statusBadge(status) {
+  const map = {
+    'draft':'badge-draft','pending-sm':'badge-pending-sm','pending-ch':'badge-pending-ch',
+    'pending-ins':'badge-pending-ins','approved':'badge-approved','rejected':'badge-rejected',
+    'returned':'badge-returned','ariba-ready':'badge-ariba-ready','ariba-pushed':'badge-ariba-pushed','push-failed':'badge-push-failed'
+  };
+  const labels={
+    'draft':'Draft','pending-sm':'Pending State Manager','pending-ch':'Pending Construction Head',
+    'pending-ins':'Pending Inspector','approved':'Approved','rejected':'Rejected',
+    'returned':'Returned for Correction','ariba-ready':'Ready for Ariba',
+    'ariba-pushed':'Pushed to Ariba','push-failed':'Push Failed'
+  };
+  return `<span class="badge ${map[status]||'badge-draft'}">${labels[status]||status}</span>`;
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function navigate(pageId) {
+  if(currentPage) previousPage = currentPage;
+  currentPage = pageId;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById('page-'+pageId);
+  if(el) el.classList.add('active');
+  // Page titles
+  const titles = {
+    'dashboard-engineer':'Dashboard','dashboard-statemanager':'Dashboard','dashboard-consthead':'Dashboard',
+    'dashboard-procurement':'Dashboard','create-pr':'Create New PR','my-prs':'My PRs',
+    'all-prs':'All PRs','pr-detail':'PR Detail','approvals':'Approvals Inbox',
+    'procurement':'Procurement Processing','item-master':'Item Master',
+    'reports':'Reports & Analytics','notifications':'Notifications'
+  };
+  document.getElementById('pageTitle').textContent = titles[pageId]||pageId;
+  // Sidebar active
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  const active = document.querySelector(`.sidebar-item[data-id="${pageId}"]`);
+  if(active) active.classList.add('active');
+  // Lazy-render
+  if(pageId==='my-prs') renderMyPRs();
+  if(pageId==='all-prs') renderAllPRs();
+  if(pageId==='item-master') renderItemMaster();
+  if(pageId==='approvals') renderInbox();
+}
+
+function goBack() {
+  if(previousPage) navigate(previousPage);
+  else navigate(roleConfig[currentRole].dashboard);
+}
+
+// ─── ROLE SWITCHER ───────────────────────────────────────────────────────────
+function switchRole(role) {
+  currentRole = role;
+  const rc = roleConfig[role];
+  document.getElementById('userName').textContent = rc.name;
+  document.getElementById('userRole').textContent = rc.site;
+  document.getElementById('userAvatar').textContent = rc.initials;
+  renderSidebar();
+  navigate(rc.dashboard);
+}
+
+function renderSidebar() {
+  const nav = roleConfig[currentRole].nav;
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = nav.map(item=>`
+    <div class="sidebar-item" data-id="${item.id}" onclick="navigate('${item.id}')">
+      <span class="sidebar-icon">${item.icon}</span>
+      <span>${item.label}</span>
+      ${item.badge?`<span class="sidebar-badge">${item.badge}</span>`:''}
+    </div>
+  `).join('');
+  // Mark active
+  const active = document.querySelector(`.sidebar-item[data-id="${currentPage}"]`);
+  if(active) active.classList.add('active');
+}
+
+// ─── MY PRs ──────────────────────────────────────────────────────────────────
+function renderMyPRs(data) {
+  const rows = data || Object.values(prData);
+  const tbody = document.getElementById('myPRsBody');
+  const lastActions = {
+    'EE-PR-2024-0038':'Approved by Inspector','EE-PR-2024-0039':'Awaiting approval',
+    'EE-PR-2024-0040':'Returned by State Manager','EE-PR-2024-0041':'Awaiting approval',
+    'EE-PR-2024-0042':'Saved as draft','EE-PR-2024-0033':'Pushed to Ariba',
+    'EE-PR-2024-0034':'Pushed to Ariba','EE-PR-2024-0035':'Rejected by Construction Head',
+    'EE-PR-2024-0036':'Pushed to Ariba','EE-PR-2024-0037':'Awaiting review'
+  };
+  tbody.innerHTML = rows.map(pr=>`
+    <tr onclick="openPRDetail('${pr.num}')">
+      <td class="td-nowrap"><strong>${pr.num}</strong></td>
+      <td>${pr.title}</td>
+      <td style="white-space:nowrap">${pr.site}</td>
+      <td>${pr.cat}</td>
+      <td class="td-nowrap">${pr.submittedOn}</td>
+      <td class="td-nowrap"><strong>${pr.value}</strong></td>
+      <td>${statusBadge(pr.status)}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${lastActions[pr.num]||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('${pr.num}')">View</button>
+        ${pr.status==='returned'?`<button class="btn btn-outline-orange btn-xs" style="margin-left:4px" onclick="event.stopPropagation();navigate('create-pr')">Revise</button>`:''}
+        ${pr.status==='draft'?`<button class="btn btn-outline-primary btn-xs" style="margin-left:4px" onclick="event.stopPropagation();navigate('create-pr')">Edit</button>`:''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterPRs() {
+  const q = document.getElementById('prSearch').value.toLowerCase();
+  const st = document.getElementById('statusFilter').value;
+  const statusKeyMap={
+    'Draft':'draft','Pending State Manager':'pending-sm','Pending Construction Head':'pending-ch',
+    'Pending Inspector':'pending-ins','Approved':'approved','Rejected':'rejected','Returned for Correction':'returned'
+  };
+  const filtered = Object.values(prData).filter(pr=>{
+    const matchQ = !q || pr.num.toLowerCase().includes(q) || pr.title.toLowerCase().includes(q);
+    const matchS = !st || pr.status===(statusKeyMap[st]||st.toLowerCase());
+    return matchQ && matchS;
+  });
+  renderMyPRs(filtered);
+}
+
+// ─── ALL PRs ─────────────────────────────────────────────────────────────────
+function renderAllPRs(data) {
+  const rows = data || Object.values(prData);
+  const tbody = document.getElementById('allPRsBody');
+  tbody.innerHTML = rows.map(pr=>`
+    <tr onclick="openPRDetail('${pr.num}')">
+      <td><strong>${pr.num}</strong></td>
+      <td>${pr.title}</td>
+      <td>${pr.submittedBy}</td>
+      <td>${pr.site.replace(' Wind Farm','').replace(' Wind Project','').replace(' Phase 2','')}</td>
+      <td>${pr.submittedOn}</td>
+      <td><strong>${pr.value}</strong></td>
+      <td>${statusBadge(pr.status)}</td>
+      <td><button class="btn btn-outline btn-xs" onclick="event.stopPropagation();openPRDetail('${pr.num}')">View</button></td>
+    </tr>
+  `).join('');
+}
+
+function filterAllPRs() {
+  const q = document.getElementById('allPrSearch').value.toLowerCase();
+  const st = document.getElementById('allStatusFilter').value;
+  const statusKeyMap={
+    'Draft':'draft','Pending State Manager':'pending-sm','Pending Construction Head':'pending-ch',
+    'Pending Inspector':'pending-ins','Approved':'approved','Rejected':'rejected','Returned for Correction':'returned'
+  };
+  const filtered = Object.values(prData).filter(pr=>{
+    const matchQ = !q || pr.num.toLowerCase().includes(q) || pr.title.toLowerCase().includes(q) || pr.submittedBy.toLowerCase().includes(q);
+    const matchS = !st || pr.status===(statusKeyMap[st]||'');
+    return matchQ && matchS;
+  });
+  renderAllPRs(filtered);
+}
+
+// ─── ITEM MASTER ─────────────────────────────────────────────────────────────
+function renderItemMaster(data) {
+  const rows = data || itemMaster;
+  document.getElementById('itemMasterBody').innerHTML = rows.map(it=>`
+    <tr>
+      <td><code style="font-size:12px;background:var(--row-alt);padding:2px 6px;border-radius:4px">${it.code}</code></td>
+      <td><strong>${it.name}</strong></td>
+      <td>${it.cat}</td>
+      <td>${it.uom}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${it.desc}</td>
+      <td><span class="badge badge-active">Active</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-xs" onclick="showToast('Edit item: coming soon in full build.','warning')">Edit</button>
+        <button class="btn btn-outline-red btn-xs" style="margin-left:4px" onclick="showToast('Item deactivated (demo only).','success')">Deactivate</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterItems() {
+  const q = document.getElementById('itemSearch').value.toLowerCase();
+  const cat = document.getElementById('itemCatFilter').value;
+  const filtered = itemMaster.filter(it=>
+    (!q || it.code.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)) &&
+    (!cat || it.cat===cat)
+  );
+  renderItemMaster(filtered);
+}
+
+// ─── APPROVALS INBOX ─────────────────────────────────────────────────────────
+const inboxData = {
+  statemanager:[
+    {num:'EE-PR-2024-0041',title:'Crane Hire - Tower Section',by:'Ravi Kumar',site:'Tirunelveli',cat:'Services',val:'₹4,50,000',days:2,priority:'High'},
+    {num:'EE-PR-2024-0043',title:'XLPE Cable 500m',by:'Meera Patel',site:'Kutch',cat:'Electrical',val:'₹1,85,000',days:1,priority:'Normal'},
+    {num:'EE-PR-2024-0044',title:'Foundation Bolts Bulk',by:'Arjun Das',site:'Jaisalmer',cat:'Spare Parts',val:'₹67,500',days:3,priority:'Normal'},
+    {num:'EE-PR-2024-0045',title:'HSD Diesel October Top-up',by:'Ramesh B',site:'Davangere',cat:'Consumables',val:'₹1,10,000',days:4,priority:'High'},
+    {num:'EE-PR-2024-0046',title:'Safety Audit Equipment',by:'Priya S',site:'Brahmanvel',cat:'PPE & Safety',val:'₹52,000',days:1,priority:'Normal'},
+  ],
+  consthead:[
+    {num:'EE-PR-2024-0039',title:'Safety PPE Restock Q4',by:'Ravi Kumar',site:'Kutch',cat:'PPE & Safety',val:'₹38,200',days:6,priority:'Normal'},
+    {num:'EE-PR-2024-0043',title:'XLPE Cable 500m',by:'Meera Patel',site:'Kutch',cat:'Electrical',val:'₹1,85,000',days:1,priority:'Normal'},
+    {num:'EE-PR-2024-0041',title:'Crane Hire - Tower Section',by:'Ravi Kumar',site:'Tirunelveli',cat:'Services',val:'₹4,50,000',days:2,priority:'High'},
+  ]
+};
+
+function renderInbox() {
+  const role = currentRole==='statemanager'?'statemanager':'consthead';
+  const data = inboxData[role]||[];
+  document.getElementById('inboxCount').textContent = `${data.length} pending`;
+  renderInboxRows(data);
+}
+
+function renderInboxRows(rows) {
+  document.getElementById('inboxBody').innerHTML = rows.map(r=>{
+    let daysCls='';
+    if(r.days>4) daysCls='days-red';
+    else if(r.days>2) daysCls='days-amber';
+    return `<tr onclick="openPRDetail('${r.num}')">
+      <td><strong>${r.num}</strong></td>
+      <td>${r.title}</td>
+      <td>${r.by}</td>
+      <td>${r.site}</td>
+      <td>${r.cat}</td>
+      <td><strong>${r.val}</strong></td>
+      <td class="${daysCls}">${r.days} day${r.days!==1?'s':''}</td>
+      <td><span class="badge ${r.priority==='High'?'badge-high':'badge-normal'}">${r.priority}</span></td>
+      <td><button class="btn btn-primary btn-xs" onclick="event.stopPropagation();openPRDetail('${r.num}')">Review</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function setInboxTab(el, tab) {
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const role = currentRole==='statemanager'?'statemanager':'consthead';
+  const data = inboxData[role]||[];
+  if(tab==='all') renderInboxRows(data);
+  else if(tab==='pending') renderInboxRows(data);
+  else renderInboxRows([]);
+}
+
+// ─── PR DETAIL ───────────────────────────────────────────────────────────────
+function openPRDetail(prNum) {
+  const pr = prData[prNum];
+  if(!pr) return;
+  previousPage = currentPage;
+  currentPage = 'pr-detail';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-pr-detail').classList.add('active');
+  document.getElementById('pageTitle').textContent = 'PR Detail';
+  document.getElementById('detailPRNum').textContent = pr.num;
+  document.getElementById('detailStatusBadge').innerHTML = statusBadge(pr.status);
+
+  document.getElementById('detailFields').innerHTML = [
+    {l:'PR Number',v:`<strong>${pr.num}</strong>`},{l:'Title',v:pr.title},
+    {l:'Site / Project',v:pr.site},{l:'Department',v:pr.dept},
+    {l:'Category',v:pr.cat},{l:'Priority',v:`<span class="badge ${pr.priority==='High'?'badge-high':'badge-normal'}">${pr.priority}</span>`},
+    {l:'Required By',v:pr.reqBy},{l:'Submitted By',v:pr.submittedBy},
+    {l:'Submitted On',v:pr.submittedOn},{l:'Total Value',v:`<strong>${pr.value}</strong>`},
+    {l:'Justification',v:pr.remarks}
+  ].map(f=>`<div class="detail-field"><div class="detail-field-label">${f.l}</div><div class="detail-field-value">${f.v}</div></div>`).join('');
+
+  const lineItems = prLineItems[prNum] || defaultLineItems;
+  document.getElementById('detailLineItems').innerHTML = lineItems.map((li,i)=>`
+    <tr><td>${i+1}</td><td>${li.name}</td><td>${li.cat}</td><td>${li.uom}</td>
+    <td>${li.qty}</td><td>₹${li.price.toLocaleString('en-IN')}</td>
+    <td><strong>₹${li.total.toLocaleString('en-IN')}</strong></td>
+    <td style="font-size:12.5px;color:var(--muted)">${li.remarks||'—'}</td></tr>
+  `).join('');
+  const totalVal = lineItems.reduce((s,li)=>s+li.total,0);
+  document.getElementById('detailTotal').textContent = '₹'+totalVal.toLocaleString('en-IN');
+
+  renderTimeline(pr);
+  renderActionPanel(pr);
+  document.getElementById('mainArea').scrollTop=0;
+}
+
+function renderTimeline(pr) {
+  const stage = pr.stage;
+  const tlEl = document.getElementById('detailTimeline');
+  let html = '';
+  for(let i=0;i<5;i++){
+    let dotCls='pending', icon='○';
+    if(i<stage){dotCls='done';icon='✓';}
+    else if(i===stage){dotCls='current';icon='⟳';}
+    const highlight = i===stage?'tl-current-highlight':'';
+    const comment = (i>0&&i<stage&&stageComments[i])?`<div class="tl-comment">"${stageComments[i]}"</div>`:'';
+    const statusTxt = i<stage?'Completed':i===stage?'In Progress':'Not yet reached';
+    const approver = i===0?'Ravi Kumar (Site Engineer)':(i<stage?stageApprovers[i]:'Pending: '+stageApprovers[i]);
+    html+=`<div class="tl-item">
+      <div class="tl-dot ${dotCls}">${icon}</div>
+      <div class="tl-body">
+        <div class="${highlight}">
+          <div class="tl-stage">${stageTitles[i]}</div>
+          <div class="tl-meta">${approver}</div>
+          ${i===0?`<div class="tl-meta">${pr.submittedOn}</div>`:''}
+          ${i===1&&stage>1?`<div class="tl-meta">21 Nov 2024, 2:15 PM</div>`:''}
+          ${i===2&&stage>2?`<div class="tl-meta">22 Nov 2024, 10:00 AM</div>`:''}
+          ${comment}
+          ${i===stage&&i>0?`<div class="tl-meta" style="margin-top:4px;color:var(--primary);font-size:11.5px">● Currently at this stage</div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }
+  tlEl.innerHTML = html;
+}
+
+function renderActionPanel(pr) {
+  const panel = document.getElementById('actionPanel');
+  const content = document.getElementById('actionPanelContent');
+  const title = document.getElementById('actionPanelTitle');
+
+  const isApprover = (currentRole==='statemanager'&&pr.status==='pending-sm') ||
+                     (currentRole==='consthead'&&pr.status==='pending-ch');
+  const isProcurement = currentRole==='procurement' && pr.status==='approved';
+
+  if(isApprover){
+    title.textContent = 'Review Actions';
+    content.innerHTML = `
+      <div class="action-panel">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Review this PR and take action. A comment is required for rejection or return.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-accent btn-sm" onclick="doApproval('approve','${pr.num}')">✅ Approve</button>
+          <button class="btn btn-outline-orange btn-sm" onclick="showCommentBox('return','${pr.num}')">↩ Return for Correction</button>
+          <button class="btn btn-outline-red btn-sm" onclick="showCommentBox('reject','${pr.num}')">❌ Reject</button>
+        </div>
+        <div class="action-comment-box" id="commentBox">
+          <textarea class="form-textarea" id="approvalComment" placeholder="Add comment (required for rejection / return)..." style="margin-top:12px"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" id="confirmActionBtn" onclick="">Confirm</button>
+            <button class="btn btn-outline btn-sm" onclick="closeCommentBox()">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+  } else if(isProcurement){
+    title.textContent = 'Procurement Actions';
+    content.innerHTML = `
+      <div class="action-panel">
+        <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px">Manual Verification Checklist</div>
+        <div class="checklist-item"><input type="checkbox" id="chk1" onchange="checkPushReady('${pr.num}')"><label for="chk1">Quantities verified against site requirement</label></div>
+        <div class="checklist-item"><input type="checkbox" id="chk2" onchange="checkPushReady('${pr.num}')"><label for="chk2">Budget code confirmed</label></div>
+        <div class="checklist-item"><input type="checkbox" id="chk3" onchange="checkPushReady('${pr.num}')"><label for="chk3">Vendor shortlist available</label></div>
+        <button class="btn btn-teal" id="pushAribaBtn" disabled style="margin-top:16px;width:100%" onclick="pushToAriba('${pr.num}')">🚀 Push to Ariba</button>
+        <div class="ariba-success" id="aribaSuccess">
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">✅ Successfully pushed to Ariba</div>
+          <div>Reference: <strong>ARB-2024-8821</strong></div>
+          <div style="font-size:12px;color:#065F46;margin-top:4px">Logged at 20 Nov 2024, 3:45 PM by Priya Menon</div>
+        </div>
+      </div>`;
+  } else {
+    title.textContent = 'Timeline';
+    content.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:8px 0">No actions available for this PR in your current role.</div>`;
+  }
+}
+
+let pendingAction = '';
+let pendingPR = '';
+
+function showCommentBox(action, prNum) {
+  pendingAction = action;
+  pendingPR = prNum;
+  const box = document.getElementById('commentBox');
+  if(box){ box.classList.add('open'); }
+  const btn = document.getElementById('confirmActionBtn');
+  if(btn){ btn.onclick = ()=>confirmAction(action, prNum); }
+}
+
+function closeCommentBox() {
+  const box = document.getElementById('commentBox');
+  if(box) box.classList.remove('open');
+}
+
+function doApproval(action, prNum) {
+  const pr = prData[prNum];
+  if(!pr) return;
+  if(action==='approve'){
+    if(pr.status==='pending-sm') pr.status='pending-ch', pr.stage=2;
+    else if(pr.status==='pending-ch') pr.status='pending-ins', pr.stage=3;
+    else if(pr.status==='pending-ins') pr.status='approved', pr.stage=4;
+    document.getElementById('detailStatusBadge').innerHTML = statusBadge(pr.status);
+    renderTimeline(pr);
+    renderActionPanel(pr);
+    showToast('PR Approved. Next approver has been notified.','success');
+  }
+}
+
+function confirmAction(action, prNum) {
+  const comment = document.getElementById('approvalComment')?.value;
+  if((action==='reject'||action==='return') && !comment?.trim()){
+    showToast('A comment is required for this action.','error');return;
+  }
+  const pr = prData[prNum];
+  if(action==='return'){
+    pr.status='returned'; pr.stage=1;
+    showToast('PR returned for correction. Engineer notified by email.','warning');
+  } else if(action==='reject'){
+    pr.status='rejected'; pr.stage=2;
+    showToast('PR has been rejected.','error');
+  }
+  document.getElementById('detailStatusBadge').innerHTML = statusBadge(pr.status);
+  renderTimeline(pr); renderActionPanel(pr);
+  closeCommentBox();
+}
+
+function checkPushReady(prNum) {
+  const c1=document.getElementById('chk1')?.checked;
+  const c2=document.getElementById('chk2')?.checked;
+  const c3=document.getElementById('chk3')?.checked;
+  const btn=document.getElementById('pushAribaBtn');
+  if(btn) btn.disabled=!(c1&&c2&&c3);
+}
+
+function pushToAriba(prNum) {
+  showModal('push-ariba', prNum);
+}
+
+// ─── LINE ITEMS ───────────────────────────────────────────────────────────────
+function addLineItem() {
+  lineItemCounter++;
+  const id = lineItemCounter;
+  const opts = itemMaster.map(it=>`<option value="${it.code}" data-cat="${it.cat}" data-uom="${it.uom}">[${it.code}] ${it.name}</option>`).join('');
+  const tr = document.createElement('tr');
+  tr.id = `li-row-${id}`;
+  tr.innerHTML = `
+    <td style="color:var(--muted);font-size:12px;text-align:center">${id}</td>
+    <td><select class="li-select" id="li-item-${id}" onchange="onItemSelect(${id})" style="min-width:180px"><option value="">Select item...</option>${opts}</select></td>
+    <td><input class="li-input" id="li-cat-${id}" readonly style="width:110px"></td>
+    <td><input class="li-input" id="li-uom-${id}" readonly style="width:60px"></td>
+    <td><input class="li-input" id="li-qty-${id}" type="number" min="1" value="1" style="width:60px" oninput="calcLineTotal(${id})"></td>
+    <td><input class="li-input" id="li-price-${id}" type="number" min="0" placeholder="0" style="width:110px" oninput="calcLineTotal(${id})"></td>
+    <td><input class="li-input" id="li-total-${id}" readonly style="width:100px"></td>
+    <td><input class="li-input" id="li-remarks-${id}" placeholder="Optional" style="width:120px"></td>
+    <td><button class="trash-btn" onclick="removeLineItem(${id})">🗑</button></td>
+  `;
+  document.getElementById('lineItemsBody').appendChild(tr);
+}
+
+function onItemSelect(id) {
+  const sel = document.getElementById(`li-item-${id}`);
+  const opt = sel.selectedOptions[0];
+  document.getElementById(`li-cat-${id}`).value = opt?.dataset?.cat||'';
+  document.getElementById(`li-uom-${id}`).value = opt?.dataset?.uom||'';
+  calcLineTotal(id);
+}
+
+function calcLineTotal(id) {
+  const qty = parseFloat(document.getElementById(`li-qty-${id}`)?.value)||0;
+  const price = parseFloat(document.getElementById(`li-price-${id}`)?.value)||0;
+  const total = qty*price;
+  const el = document.getElementById(`li-total-${id}`);
+  if(el) el.value = total>0?'₹'+total.toLocaleString('en-IN'):'';
+  updateGrandTotal();
+}
+
+function removeLineItem(id) {
+  const row = document.getElementById(`li-row-${id}`);
+  if(row) row.remove();
+  updateGrandTotal();
+}
+
+function updateGrandTotal() {
+  let total = 0;
+  document.querySelectorAll('[id^="li-qty-"]').forEach(el=>{
+    const id = el.id.replace('li-qty-','');
+    const qty = parseFloat(el.value)||0;
+    const price = parseFloat(document.getElementById(`li-price-${id}`)?.value)||0;
+    total += qty*price;
+  });
+  const fmt = '₹'+total.toLocaleString('en-IN');
+  document.getElementById('grandTotal').textContent = fmt;
+  document.getElementById('totalValueDisplay').value = fmt;
+}
+
+// ─── FORM ACTIONS ────────────────────────────────────────────────────────────
+function saveDraft() {
+  showToast('PR saved as draft.','success');
+}
+
+function submitPR() {
+  const title = document.getElementById('prTitle')?.value?.trim();
+  const site = document.getElementById('prSite')?.value;
+  if(!title){showToast('Please enter a PR Title before submitting.','error');return;}
+  if(!site){showToast('Please select a Site / Project.','error');return;}
+  const prNum = `EE-PR-2024-00${prCounter++}`;
+  showToast(`PR ${prNum} submitted successfully. State Manager notified by email.`,'success');
+  setTimeout(()=>navigate('my-prs'),1500);
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function showModal(type, prNum) {
+  const overlay = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  if(type==='push-ariba'){
+    content.innerHTML = `
+      <div class="modal-title">Push to SAP Ariba</div>
+      <div class="modal-body">You are about to push PR <strong>${prNum}</strong> to SAP Ariba. This action is logged and cannot be undone.<br><br>Please confirm to proceed.</div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-teal" onclick="confirmAriba('${prNum}')">Confirm Push</button>
+      </div>`;
+  }
+  overlay.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function confirmAriba(prNum) {
+  closeModal();
+  showToast('Successfully pushed to SAP Ariba. Reference: ARB-2024-8821.','success');
+  const aribaDiv = document.getElementById('aribaSuccess');
+  if(aribaDiv){ aribaDiv.classList.add('show'); }
+  const btn = document.getElementById('pushAribaBtn');
+  if(btn){ btn.disabled=true; btn.textContent='✓ Pushed to Ariba'; btn.style.background='#059669'; }
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const container = document.getElementById('toastContainer');
+  const icons={success:'✅',error:'❌',warning:'⚠️'};
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.style.animation='fadeOut 0.4s ease forwards';
+    setTimeout(()=>toast.remove(),400);
+  },3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+switchRole('engineer');
+addLineItem(); // start with one empty line item
+</script>
+</body>
+</html>
