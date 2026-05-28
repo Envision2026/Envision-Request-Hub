@@ -254,7 +254,6 @@ tbody tr:hover td{background:var(--row-hover);cursor:pointer}
 .notif-dot.read{background:var(--border)}
 .notif-text{font-size:13.5px;color:var(--text);line-height:1.5}
 .notif-time{font-size:11.5px;color:var(--muted);margin-top:2px}
-
 </style>
 </head>
 <body>
@@ -686,7 +685,6 @@ tbody tr:hover td{background:var(--row-hover);cursor:pointer}
 
     </div><!-- /main -->
   </div><!-- /body-area -->
-
 </div><!-- /app -->
 
 <!-- MODAL -->
@@ -1261,14 +1259,70 @@ function saveDraft() {
   showToast('PR saved as draft.','success');
 }
 
-function submitPR() {
+async function submitPR() {
   const title = document.getElementById('prTitle')?.value?.trim();
   const site = document.getElementById('prSite')?.value;
   if(!title){showToast('Please enter a PR Title before submitting.','error');return;}
   if(!site){showToast('Please select a Site / Project.','error');return;}
+
+  // Collect line items
+  const items = [];
+  document.querySelectorAll('[id^="li-item-"]').forEach(sel=>{
+    const id = sel.id.replace('li-item-','');
+    const itemCode = sel.value;
+    if(!itemCode) return;
+    // find item master id by code — use index+1 as id since DB ids are 1-15
+    const imIdx = itemMaster.findIndex(i=>i.code===itemCode);
+    const itemId = imIdx+1;
+    const qty = parseFloat(document.getElementById(`li-qty-${id}`)?.value)||1;
+    const price = parseFloat(document.getElementById(`li-price-${id}`)?.value)||0;
+    const remarks = document.getElementById(`li-remarks-${id}`)?.value||'';
+    items.push({item_id:itemId, quantity:qty, unit_price:price, remarks});
+  });
+
+  // Get other form fields
+  const deptEl = document.querySelector('#page-create-pr .form-select:nth-of-type(2)');
+  const catEl = document.querySelector('#page-create-pr .form-select:nth-of-type(3)');
+  const dateEl = document.querySelector('#page-create-pr input[type="date"]');
+  const justEl = document.querySelector('#page-create-pr .form-textarea');
+  const priorityEl = document.querySelector('input[name="priority"]:checked');
+
+  // Calculate total
+  let total = 0;
+  items.forEach(i=>total+=i.quantity*i.unit_price);
+
   const prNum = `EE-PR-2024-00${prCounter++}`;
-  showToast(`PR ${prNum} submitted successfully. State Manager notified by email.`,'success');
-  setTimeout(()=>navigate('my-prs'),1500);
+  const payload = {
+    pr_number: prNum,
+    title: title,
+    site: site,
+    department: deptEl?.value||'',
+    category: catEl?.value||'',
+    priority: (priorityEl?.value||'Normal').toLowerCase(),
+    required_by_date: dateEl?.value||null,
+    justification: justEl?.value||'',
+    estimated_total: total,
+    submitted_by: 1,
+    items: items
+  };
+
+  try {
+    showToast('Submitting PR...','warning');
+    const res = await fetch('https://envision-pr-backend.vercel.app/prs',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(res.ok){
+      showToast(`PR ${prNum} submitted successfully. State Manager notified.`,'success');
+      setTimeout(()=>navigate('my-prs'),1500);
+    } else {
+      showToast(`Error: ${data.detail||'Submission failed'}`, 'error');
+    }
+  } catch(err) {
+    showToast(`Network error: ${err.message}`,'error');
+  }
 }
 
 // ─── MODAL ───────────────────────────────────────────────────────────────────
